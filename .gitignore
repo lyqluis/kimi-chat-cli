@@ -1,0 +1,9 @@
+node_modules
+dist
+
+.env
+.env.*
+
+/api/
+package.bak.jsonc
+CLAUDE.md

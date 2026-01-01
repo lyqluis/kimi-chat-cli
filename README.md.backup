@@ -1,0 +1,83 @@
+# kimi-chat-cli
+
+A personal terminal-based chat client for Kimi AI, built with React and Ink.
+
+## Overview
+
+A personal project I built for my own use.
+This is a CLI application that allows you to chat with Kimi AI directly from your terminal. It provides a terminal UI with streaming responses, chat history management, and some customization options.
+
+## Features
+
+- **Real-time Streaming**: Messages stream in real-time with a typing effect
+- **Chat History**: View, search(not yet), and manage your previous conversations
+- **Toggle Modes**:
+  - Web Search: `Ctrl+W`
+  - Long Thinking: `Ctrl+L`
+- **Commands**: `/history`, `/new`, `/clear`, `/exit`, `/help`...(some not yet implemented)
+- **Keyboard Navigation**:
+  - `Enter` - Send message / Load selected chat from history
+  - `Esc` - Cancel / Return to chat
+  - `Space` - Expand chat preview in history
+  - `M` - Load more history items
+  - `D` - Delete chat from history
+  - `↑/↓` or `j/k` - Navigate in history list
+  - `Ctrl+C` - Exit application
+
+## Installation
+
+```bash
+# Build from source
+pnpm build
+
+# Install globally (optional)
+npm install -g .
+```
+
+## Configuration
+
+Before using, you need to configure your web Kimi AI token.
+
+1. Get your token from browser:
+
+   - Open [kimi.ai](https://kimi.ai) in your browser
+   - Open DevTools (F12) → Application/Storage → Cookies
+   - Copy the value of `kimi-auth` or similar auth token
+
+2. Create config file:
+
+```bash
+mkdir -p ~/.kimi-chat-cli
+echo "YOUR_TOKEN_HERE" > ~/.kimi-chat-cli/chatclirc
+```
+
+## Usage
+
+```bash
+# Run the CLI
+kimi-chat
+```
+
+## Development
+
+```bash
+# Watch mode with auto-restart
+pnpm dev
+
+# Watch with nodemon
+pnpm dev-nodemon
+
+# Run tests
+pnpm test
+```
+
+## Tech Stack
+
+- [React](https://react.dev/) - UI library
+- [Ink](https://github.com/vadimdemedes/ink) - React for terminals
+- [TypeScript](https://www.typescriptlang.org/) - Type safety
+- [Vitest](https://vitest.dev/) - Testing framework
+
+## License
+
+MIT
