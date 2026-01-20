@@ -5,14 +5,16 @@
 	"license": "MIT",
 	"type": "module",
 	"engines": {
-		"node": ">=16"
+		"node": ">=16",
+		"pnpm": ">=8"
 	},
 	"scripts": {
 		"build": "tsup",
 		"dev": "tsx --watch src/cli.tsx",
 		"dev-nodemon": "nodemon --watch src --exec 'tsx src/cli.tsx'",
 		"test": "vitest run",
-		"test:watch": "vitest"
+		"test:watch": "vitest",
+		"preinstall": "npx only-allow pnpm"
 	},
 	"files": [
 		"dist",
