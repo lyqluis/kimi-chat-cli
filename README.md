@@ -4,8 +4,7 @@ A personal terminal-based chat client for Kimi AI, built with React and Ink.
 
 ## Overview
 
-A personal project I built for my own use.
-This is a CLI application that allows you to chat with Kimi AI directly from your terminal. It provides a terminal UI with streaming responses, chat history management, and some customization options.
+A personal project I built for my own use — because I don't want to frequently open a browser or switch tabs for trivial questions, as my slow computer handles that poorly. It provides a terminal UI with streaming responses, chat history management, and some customization options.
 
 ## Features
 
