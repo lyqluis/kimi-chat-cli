@@ -4,4 +4,5 @@
 
 ### Patch Changes
 
+- test ci workflow
 - f38ce64: upgeade dependencies, add changelog manger changeset and ci workflow
