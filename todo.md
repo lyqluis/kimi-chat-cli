@@ -14,3 +14,4 @@
 - [ ] messages(answers) ui rendered with markdown
 - [ ] feat: preset chat messages
 - [ ] search history
+- [ ] `cli --version` shows app version
