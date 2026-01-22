@@ -1,0 +1,56 @@
+name: Release on Tag
+
+on:
+  push:
+    tags:
+      - "v*" # 仅当推送 v 开头的标签时触发
+
+# 确保如果短时间内推送了多个 Tag，只运行最新的一个，避免竞态冲突
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4 # 官方最新版
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*" # 始终使用最新的 LTS 版本 (如 Node 20/22)
+          # 开启缓存可以显著提升后续构建速度
+          cache: "pnpm"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4 # 升级到 v4 以支持最新的 pnpm 10
+        with:
+          # 不指定版本号，默认安装最新稳定版
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile # 生产环境安装，确保 lockfile 一致
+
+      - name: Build Project
+        run: pnpm build
+
+      - name: Publish to NPM
+        # 加上 --no-git-checks，因为 Actions 环境中没有配置 git 用户，避免报错
+        run: pnpm changeset publish --no-git-checks
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
