@@ -1,4 +1,4 @@
-import type { HistoryResponse } from "../api/history.js"
+import type { HistoryResponse, HistoryPayload } from "../api/history.js"
 
 const mockChatList = {
 	chats: [
@@ -46,10 +46,148 @@ const mockChatList = {
 	nextPageToken: "KgsI6IXVygYQ-JzIGA==",
 }
 
-export const fetchMockChatHistory = async (): Promise<HistoryResponse> => {
-	const chats = mockChatList.chats
+// 模拟分页：重复数据来模拟更多历史记录
+const allMockChats = [
+	...mockChatList.chats,
+	...mockChatList.chats,
+	...mockChatList.chats,
+]
+
+// 模拟搜索结果：当使用 query 参数时返回这些数据
+const mockSearchResults = [
+	{
+		id: "search-1",
+		name: "搜索结果: Ink调试",
+		messageContent: "这是 Ink 调试相关的搜索结果...",
+		createTime: "2025-12-31T15:44:06.133314Z",
+		updateTime: "2026-01-01T07:10:18.660478Z",
+	},
+	{
+		id: "search-2",
+		name: "搜索结果: Prettier配置",
+		messageContent: "这是 Prettier 配置相关的搜索结果...",
+		createTime: "2026-01-01T06:05:09.511854Z",
+		updateTime: "2026-01-01T07:06:39.834765Z",
+	},
+	{
+		id: "search-3",
+		name: "搜索结果: pnpm命令",
+		messageContent: "这是 pnpm 命令相关的搜索结果...",
+		createTime: "2025-12-31T15:00:00.330981Z",
+		updateTime: "2025-12-31T15:36:08.051515Z",
+	},
+	{
+		id: "search-4",
+		name: "搜索结果: React Hooks",
+		messageContent: "这是 React Hooks 相关的搜索结果...",
+		createTime: "2025-12-30T10:00:00.000000Z",
+		updateTime: "2025-12-30T12:00:00.000000Z",
+	},
+	{
+		id: "search-5",
+		name: "搜索结果: TypeScript",
+		messageContent: "这是 TypeScript 相关的搜索结果...",
+		createTime: "2025-12-29T08:00:00.000000Z",
+		updateTime: "2025-12-29T09:00:00.000000Z",
+	},
+	{
+		id: "search-6",
+		name: "搜索结果: Node.js",
+		messageContent: "这是 Node.js 相关的搜索结果...",
+		createTime: "2025-12-28T14:00:00.000000Z",
+		updateTime: "2025-12-28T16:00:00.000000Z",
+	},
+	{
+		id: "search-7",
+		name: "搜索结果: VS Code",
+		messageContent: "这是 VS Code 相关的搜索结果...",
+		createTime: "2025-12-27T09:00:00.000000Z",
+		updateTime: "2025-12-27T11:00:00.000000Z",
+	},
+	{
+		id: "search-8",
+		name: "搜索结果: Git操作",
+		messageContent: "这是 Git 操作相关的搜索结果...",
+		createTime: "2025-12-26T16:00:00.000000Z",
+		updateTime: "2025-12-26T18:00:00.000000Z",
+	},
+	{
+		id: "search-9",
+		name: "搜索结果: Docker",
+		messageContent: "这是 Docker 相关的搜索结果...",
+		createTime: "2025-12-25T12:00:00.000000Z",
+		updateTime: "2025-12-25T14:00:00.000000Z",
+	},
+	{
+		id: "search-10",
+		name: "搜索结果: API设计",
+		messageContent: "这是 API 设计相关的搜索结果...",
+		createTime: "2025-12-24T08:00:00.000000Z",
+		updateTime: "2025-12-24T10:00:00.000000Z",
+	},
+	{
+		id: "search-11",
+		name: "搜索结果: 单元测试",
+		messageContent: "这是单元测试相关的搜索结果...",
+		createTime: "2025-12-23T15:00:00.000000Z",
+		updateTime: "2025-12-23T17:00:00.000000Z",
+	},
+	{
+		id: "search-12",
+		name: "搜索结果: 性能优化",
+		messageContent: "这是性能优化相关的搜索结果...",
+		createTime: "2025-12-22T11:00:00.000000Z",
+		updateTime: "2025-12-22T13:00:00.000000Z",
+	},
+]
+
+export const fetchMockChatHistory = async (
+	payload?: HistoryPayload
+): Promise<HistoryResponse> => {
+	const pageSize = payload?.page_size ?? 5
+	const pageToken = payload?.page_token
+	const query = payload?.query
+
+	let chats = allMockChats
+
+	// 如果有 query 参数，返回搜索结果
+	if (query) {
+		chats = mockSearchResults
+	}
+
+	// 解析 page_token 获取页码（模拟）
+	let startIndex = 0
+	if (pageToken) {
+		// 简单的 base64 解码模拟 - 解析出页码
+		try {
+			const decoded = Buffer.from(pageToken, "base64").toString("utf-8")
+			const match = decoded.match(/page_(\d+)/)
+			if (match) {
+				startIndex = parseInt(match[1], 10) * pageSize
+			}
+		} catch {
+			startIndex = 0
+		}
+	}
+
+	const endIndex = startIndex + pageSize
+	const paginatedChats = chats.slice(startIndex, endIndex)
+
+	// 计算是否有下一页
+	const hasNextPage = endIndex < chats.length
+	const nextPageToken = hasNextPage
+		? Buffer.from(`page_${Math.floor(endIndex / pageSize)}`).toString("base64")
+		: ""
+
 	// mockChatList.chats = [...chats, ...chats, ...chats]
 	return new Promise((resolve) => {
-		setTimeout(() => resolve(mockChatList), 1500)
+		setTimeout(
+			() =>
+				resolve({
+					chats: paginatedChats,
+					nextPageToken,
+				}),
+			1500
+		)
 	})
 }

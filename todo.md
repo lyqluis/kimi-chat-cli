@@ -11,7 +11,7 @@
 - [x] bug: message api return 高峰期算力不足，请耐心等待
 - [x] ui: add devider line between every chat message in chat mode
 - [x] ui: add date in messages in chat mode
+- [x] `cli --version` shows app version
+- [x] search history
 - [ ] messages(answers) ui rendered with markdown
 - [ ] feat: preset chat messages
-- [ ] search history
-- [ ] `cli --version` shows app version

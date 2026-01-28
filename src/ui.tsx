@@ -50,6 +50,7 @@ export const ChatApp = ({
 		webSearch: true,
 		longThinking: false,
 	})
+	// BUG: fails on first use
 	const toggleCommandRef = useRef(false) // for prevent input update when use `ctrl + w/l`
 	const isChatMode = viewMode === "chat"
 
@@ -94,6 +95,7 @@ export const ChatApp = ({
 		(inputStr, key) => {
 			// 取消发送
 			if (key.escape) {
+				// BUG: shoud be only active when sending message
 				cancelSendMessage({
 					chat_id: chatInfo?.id,
 					message_id: streamInfo.id,

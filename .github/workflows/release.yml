@@ -3,7 +3,12 @@ name: Release on Tag
 on:
   push:
     tags:
-      - "v*"
+      - "v*" # 仅当推送 v 开头的标签时触发
+
+# 确保如果短时间内推送了多个 Tag，只运行最新的一个，避免竞态冲突
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   publish:

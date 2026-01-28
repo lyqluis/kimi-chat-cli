@@ -1,6 +1,6 @@
-import React, { useState } from "react"
+import React, { useRef, useState } from "react"
 import { ChatApp } from "./ui.js"
-import { HistoryList } from "./history.js"
+import { HistoryList, HistoryListHandle } from "./history.js"
 import { useApp, useInput } from "ink"
 import { ViewMode } from "./index.js"
 
@@ -16,12 +16,13 @@ import { ViewMode } from "./index.js"
 // 	);
 // }
 
-export default function App() {
+export default function App({ mode }: { mode?: ViewMode }) {
 	const { exit } = useApp() // 用于退出应用
 
 	// --- 状态管理 ---
-	const [viewMode, setViewMode] = useState<ViewMode>("chat")
+	const [viewMode, setViewMode] = useState<ViewMode>(mode ?? "chat")
 	const [chatId, setChatId] = useState("")
+	const historyRef = useRef<HistoryListHandle>(null)
 
 	// --- 按键监听 ---
 	useInput((inputStr, key) => {
@@ -34,14 +35,18 @@ export default function App() {
 
 		// 2. Esc 返回
 		if (viewMode !== "chat" && key.escape) {
+			if (viewMode === "history" && historyRef.current?.isSearching) {
+				historyRef.current?.cancelSearch()
+				return
+			}
 			setViewMode("chat")
-			// setInput("")
 		}
 	})
 
 	if (viewMode === "history") {
 		return (
 			<HistoryList
+				ref={historyRef}
 				viewMode={viewMode}
 				setViewMode={setViewMode}
 				setChatId={setChatId}

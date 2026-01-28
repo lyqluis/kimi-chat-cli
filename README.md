@@ -55,6 +55,9 @@ echo "YOUR_TOKEN_HERE" > ~/.kimi-chat-cli/chatclirc
 ```bash
 # Run the CLI
 kimi-chat
+
+# Check Version
+kimi-chat --version
 ```
 
 ## Development
