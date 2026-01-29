@@ -1,21 +1,27 @@
-name: Release on Tag
+name: Release
 
 on:
   push:
-    tags:
-      - "v*" # 仅当推送 v 开头的标签时触发
+    branches:
+      - main # 只有推送到 main 分支时触发
 
-# 确保如果短时间内推送了多个 Tag，只运行最新的一个，避免竞态冲突
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: write # 允许 Action 创建 Git Tag 和提交代码
+  pull-requests: write # 允许 Action 创建/更新 PR
+  id-token: write # 用于 NPM Provenance
 
 jobs:
-  publish:
+  release:
+    name: Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
+        with:
+          # 这里很关键，需要 fetch-depth: 0 才能正确回溯 git history 用于生成 changelog
+          fetch-depth: 0
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -26,18 +32,27 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "lts/*"
-          # registry-url: "https://registry.npmjs.org"
           cache: "pnpm"
 
       - name: Install Dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Build Project
         run: pnpm build
 
-      - name: Publish to NPM
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
-          pnpm changeset publish --no-git-checks --access public
+      - name: Create Release Pull Request or Publish
+        id: changesets
+        # 使用官方维护的 changesets action
+        uses: changesets/action@v1
+        with:
+          # 当有 changeset 碎片时，执行这个命令
+          version: pnpm vp
+          # 当检测到 package.json 版本变化时，执行这个命令
+          publish: pnpm release
+          # 自动提交消息
+          commit: "chore: update versions"
+          title: "chore: version packages"
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # 需要两个 Token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Github 自带，无需配置
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }} # 你已经配置过的 NPM Token
