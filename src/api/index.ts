@@ -12,7 +12,7 @@ if (isProduction) {
 		console.error(`Config file not found: ${configPath}`)
 		console.error(`Please create the config file with your APP_TOKEN:`)
 		console.error(`mkdir -p ${configDir}`)
-		console.error(`echo '{"APP_TOKEN":"your_token_here"}' > ${configPath}`)
+		console.error(`echo 'APP_TOKEN="your_token_here"' > ${configPath}`)
 		process.exit(1)
 	}
 	try {

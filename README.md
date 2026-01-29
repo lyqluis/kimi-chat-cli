@@ -9,10 +9,14 @@ A personal project I built for my own use — because I don't want to frequently
 ## Features
 
 - **Real-time Streaming**: Messages stream in real-time with a typing effect
-- **Chat History**: View, search(not yet), and manage your previous conversations
+- **Chat History**: View, search, and manage your previous conversations
+- **Model select**:
+  - `Ctrl+p` - Open selector
+  - `↑/↓` or `j/k` - Navigate in the list
+  - `Enter` - Select model
 - **Toggle Modes**:
-  - Web Search: `Ctrl+W`
-  - Long Thinking: `Ctrl+L`
+  - Web Search: `Ctrl+w`
+  - Long Thinking: `Ctrl+l`
 - **Commands**: `/history`, `/new`, `/clear`, `/exit`, `/help`...(some not yet implemented)
 - **Keyboard Navigation**:
   - `Enter` - Send message / Load selected chat from history
@@ -47,7 +51,7 @@ Before using, you need to configure your web Kimi AI token.
 
 ```bash
 mkdir -p ~/.kimi-chat-cli
-echo "YOUR_TOKEN_HERE" > ~/.kimi-chat-cli/chatclirc
+echo 'APP_TOKEN="YOUR_TOKEN_HERE"' > ~/.kimi-chat-cli/chatclirc
 ```
 
 ## Usage

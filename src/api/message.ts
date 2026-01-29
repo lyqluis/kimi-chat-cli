@@ -3,6 +3,7 @@ import { Buffer } from "buffer"
 import { API_CONFIG } from "./index.js"
 import type { ChatInfo } from "./chat.js"
 import { ToggleState } from "../ui.js"
+import { ModelInfo } from "../utils/models.js"
 
 // 定义 JSON payload 的接口
 // interface ChatPayload {
@@ -64,12 +65,14 @@ const SEARCH_TOOL = {
 async function* sendBufferMessage(
 	message: Message,
 	chatInfo: ChatInfo,
+	model: ModelInfo, // | ActiveModel
 	optionsAndTools?: OptionsAndTools
 ) {
 	// 1. 构造原始 JSON
 	const jsonPayload: ChatPayload = {
 		chat_id: chatInfo?.id ?? null,
-		scenario: "SCENARIO_K2",
+		scenario:
+			model.scenario ?? chatInfo.lastRequest.scenario ?? "SCENARIO_K2D5",
 		tools: optionsAndTools.tools ?? chatInfo?.lastRequest?.tools ?? null,
 		message: {
 			role: "user",
@@ -273,6 +276,7 @@ export interface SendMessageCallbacks {
 export async function sendMessage(
 	message: Message,
 	chatInfo,
+	model: ModelInfo, // | ActiveModel
 	optionsAndToolsState: ToggleState,
 	callbacks: SendMessageCallbacks
 ): Promise<string> {
@@ -288,7 +292,12 @@ export async function sendMessage(
 
 	try {
 		// 调用之前写的生成器函数
-		const generator = sendBufferMessage(message, chatInfo, optionsAndTools)
+		const generator = sendBufferMessage(
+			message,
+			chatInfo,
+			model,
+			optionsAndTools
+		)
 		let messageUpdadated = false
 
 		for await (const chunk of generator) {

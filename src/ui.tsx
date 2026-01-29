@@ -10,6 +10,13 @@ import { filterMessagesFromResponse } from "./utils/data.js"
 import { ViewMode } from "./index.js"
 import { COMMANDS, getCommand, isCommand } from "./utils/commands.js"
 import { formatTimestamp } from "./utils/ui.js"
+import {
+	DEFAULT_MODEL,
+	findModel,
+	findModelId,
+	type ModelId,
+} from "./utils/models.js"
+import { ModelSelector } from "./components/ModelSelector.js"
 
 interface ChatAppProps {
 	id: string
@@ -50,9 +57,12 @@ export const ChatApp = ({
 		webSearch: true,
 		longThinking: false,
 	})
-	// BUG: fails on first use
 	const toggleCommandRef = useRef(false) // for prevent input update when use `ctrl + w/l`
 	const isChatMode = viewMode === "chat"
+
+	// 模型选择状态
+	const [selectedModel, setSelectedModel] = useState<ModelId>(DEFAULT_MODEL) // K2.5
+	const [showModelSelector, setShowModelSelector] = useState(false)
 
 	// stream buffer
 	const { streamBuffer, setStreamBuffer, displayBuffer, dynamicBoxHeight } =
@@ -69,9 +79,10 @@ export const ChatApp = ({
 			// get chat info
 			getChat(id)
 				.then((res) => {
-					const chat = res.chat
+					const chat = res.chat as ChatInfo
 					setChatInfo(chat)
 					setChatId(chat.id)
+					setSelectedModel(findModelId(chat.lastRequest.scenario))
 				})
 				.catch((err) => {
 					console.error("Failed to get chat:", err)
@@ -93,6 +104,9 @@ export const ChatApp = ({
 
 	useInput(
 		(inputStr, key) => {
+			// 模型选择器激活时不处理其他快捷键
+			if (showModelSelector) return
+
 			// 取消发送
 			if (key.escape) {
 				// BUG: shoud be only active when sending message
@@ -113,6 +127,14 @@ export const ChatApp = ({
 						longThinking: !prev.longThinking,
 					}))
 				}
+				setInput(input) // prevent the letter from appearing in the input field
+			}
+			// 打开模型选择器 (Ctrl+P)
+			if (key.ctrl && inputStr === "p") {
+				toggleCommandRef.current = true
+				setShowModelSelector(true)
+				setInput(input) // prevent the letter from appearing in the input field
+				return
 			}
 		},
 		{ isActive: isChatMode }
@@ -182,36 +204,45 @@ export const ChatApp = ({
 		}
 
 		try {
+			// 获取选中模型的 scenario
+			const modelInfo = findModel(selectedModel)
+
 			// 模拟 API 调用
 			// 1. if new chat, ge chat info from stream data
 			// 2. send msg with existed id
 			// const finalContent = await mockSendLongMessage(userMsg, chatInfo, {
-			const finalContent = await sendMessage(userMsg, chatInfo, toggleState, {
-				onMessageUpdate: (message) => {
-					aiMsg.id = message.id
-					setStreamInfo({ id: message.id })
-				},
-				onChatUpdate: (chat, eventOffset) => {
-					if (eventOffset === 1) {
-						setChatInfo(chat)
-					} else {
-						setChatInfo((prevInfo) => ({ ...prevInfo, ...chat }))
-					}
-				},
-				onThinkingUpdate: (content) => {
-					if (processState !== processStates.thinking)
-						setProcessState(processStates.thinking)
-					// setThinkingStreamBuffer((prev) => prev + content)
-				},
-				onAnswerUpdate: (answerString) => {
-					if (processState !== processStates.generating)
-						setProcessState(processStates.generating)
-					setStreamBuffer((prev) => prev + answerString)
-				},
-				onError: (errorString) => {
-					setStreamBuffer((prev) => prev + errorString)
-				},
-			})
+			const finalContent = await sendMessage(
+				userMsg,
+				chatInfo,
+				modelInfo,
+				toggleState,
+				{
+					onMessageUpdate: (message) => {
+						aiMsg.id = message.id
+						setStreamInfo({ id: message.id })
+					},
+					onChatUpdate: (chat, eventOffset) => {
+						if (eventOffset === 1) {
+							setChatInfo(chat)
+						} else {
+							setChatInfo((prevInfo) => ({ ...prevInfo, ...chat }))
+						}
+					},
+					onThinkingUpdate: (content) => {
+						if (processState !== processStates.thinking)
+							setProcessState(processStates.thinking)
+						// setThinkingStreamBuffer((prev) => prev + content)
+					},
+					onAnswerUpdate: (answerString) => {
+						if (processState !== processStates.generating)
+							setProcessState(processStates.generating)
+						setStreamBuffer((prev) => prev + answerString)
+					},
+					onError: (errorString) => {
+						setStreamBuffer((prev) => prev + errorString)
+					},
+				}
+			)
 
 			// 生成完毕后：
 			// 1. 将完整的 AI 回复推入 Static 历史
@@ -225,6 +256,9 @@ export const ChatApp = ({
 			setProcessState("")
 		}
 	}
+
+	// 获取当前选中模型的显示信息
+	const currentModelInfo = findModel(selectedModel)
 
 	return (
 		<>
@@ -264,6 +298,12 @@ export const ChatApp = ({
 						<Text> </Text>
 						<Text color="gray" dimColor>
 							(ctrl+w/l)
+						</Text>
+						<Text> | </Text>
+						<Text color="yellow">{currentModelInfo.name}</Text>
+						<Text> </Text>
+						<Text color="gray" dimColor>
+							(ctrl+p)
 						</Text>
 						<Text> | </Text>
 						<Text color="green">● Online</Text>
@@ -321,21 +361,37 @@ export const ChatApp = ({
 				4. 底部输入框 (始终固定在最底)
 			 */}
 			<Box width="100%">
-				<Box borderStyle="single" borderColor="gray" paddingX={1} width="100%">
-					<Text color="green" bold>
-						❯{" "}
-					</Text>
-					{viewMode === "chat" && processState === processStates.end ? (
-						<TextInput
-							value={input}
-							onChange={handleInputChange}
-							onSubmit={handleSubmit}
-							placeholder="Type a message..."
-						/>
-					) : (
-						<Text dimColor>AI is processing... (Esc to interrupt)</Text>
-					)}
-				</Box>
+				{showModelSelector ? (
+					<ModelSelector
+						selectedModel={selectedModel}
+						onSelect={(model) => {
+							setSelectedModel(model)
+							setShowModelSelector(false)
+						}}
+						onCancel={() => setShowModelSelector(false)}
+					/>
+				) : (
+					<Box
+						borderStyle="single"
+						borderColor="gray"
+						paddingX={1}
+						width="100%"
+					>
+						<Text color="green" bold>
+							❯{" "}
+						</Text>
+						{viewMode === "chat" && processState === processStates.end ? (
+							<TextInput
+								value={input}
+								onChange={handleInputChange}
+								onSubmit={handleSubmit}
+								placeholder="Type a message..."
+							/>
+						) : (
+							<Text dimColor>AI is processing... (Esc to interrupt)</Text>
+						)}
+					</Box>
+				)}
 			</Box>
 		</>
 	)
