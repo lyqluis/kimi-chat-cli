@@ -29,12 +29,34 @@ A personal project I built for my own use — because I don't want to frequently
 
 ## Installation
 
+### Install from npm
+
 ```bash
-# Build from source
+# Install globally
+npm i -g @lyqluis/kimi-chat-cli
+
+# Run the CLI
+kimi-chat
+```
+
+### Build from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/lyqluis/kimi-chat-cli.git
+cd kimi-chat-cli
+
+# Install dependencies
+pnpm install
+
+# Build the project
 pnpm build
 
-# Install globally (optional)
-npm install -g .
+# Run the CLI
+node dist/cli.js
+
+# Or link for CLI
+pnpm link
 ```
 
 ## Configuration
