@@ -43,6 +43,7 @@ if (isProduction) {
 // 自定义 API 配置
 export const API_CONFIG = {
 	endpoint: "https://www.kimi.com/apiv2/kimi.gateway.chat.v1.ChatService",
+	baseEndpoint: "https://www.kimi.com/api",
 	headers: {
 		Authorization: `Bearer ${process.env.APP_TOKEN}`,
 		"sec-ch-ua":

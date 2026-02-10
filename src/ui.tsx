@@ -17,6 +17,7 @@ import {
 	type ModelId,
 } from "./utils/models.js"
 import { ModelSelector } from "./components/ModelSelector.js"
+import { PromptSelector } from "./components/PromptSelector.js"
 
 interface ChatAppProps {
 	id: string
@@ -64,6 +65,9 @@ export const ChatApp = ({
 	const [selectedModel, setSelectedModel] = useState<ModelId>(DEFAULT_MODEL) // K2.5
 	const [showModelSelector, setShowModelSelector] = useState(false)
 
+	// 预设提示词状态
+	const [showPromptSelector, setShowPromptSelector] = useState(false)
+
 	// stream buffer
 	const { streamBuffer, setStreamBuffer, displayBuffer, dynamicBoxHeight } =
 		useStreamContent()
@@ -104,8 +108,8 @@ export const ChatApp = ({
 
 	useInput(
 		(inputStr, key) => {
-			// 模型选择器激活时不处理其他快捷键
-			if (showModelSelector) return
+			// 模型选择器或提示词选择器激活时不处理其他快捷键
+			if (showModelSelector || showPromptSelector) return
 
 			// 取消发送
 			if (key.escape) {
@@ -169,6 +173,10 @@ export const ChatApp = ({
 					break
 				case COMMANDS.exit:
 					exit()
+					break
+				case COMMANDS.prompt:
+					setShowPromptSelector(true)
+					setInput("")
 					break
 				default:
 					setInput("wrong command")
@@ -361,7 +369,15 @@ export const ChatApp = ({
 				4. 底部输入框 (始终固定在最底)
 			 */}
 			<Box width="100%">
-				{showModelSelector ? (
+				{showPromptSelector ? (
+					<PromptSelector
+						onSelect={(prompt) => {
+							setInput(prompt.content)
+							setShowPromptSelector(false)
+						}}
+						onCancel={() => setShowPromptSelector(false)}
+					/>
+				) : showModelSelector ? (
 					<ModelSelector
 						selectedModel={selectedModel}
 						onSelect={(model) => {

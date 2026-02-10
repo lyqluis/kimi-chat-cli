@@ -4,6 +4,7 @@ export const COMMANDS = {
 	help: "help",
 	clear: "clear",
 	exit: "exit",
+	prompt: "prompt",
 } as const
 
 export const isValidCommand = (value: string): boolean => {

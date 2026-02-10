@@ -51,7 +51,7 @@ jobs:
           publish: pnpm release
           # 自动提交消息
           commit: "chore: update versions"
-          title: "chore: version packages"
+          title: "chore(release): version packages" # pr title
         env:
           # 需要两个 Token
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Github 自带，无需配置

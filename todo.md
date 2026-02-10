@@ -14,6 +14,6 @@
 - [x] `cli --version` shows app version
 - [x] search history
 - [x] kimi model selector
+- [x] feat: preset chat messages
 - [ ] messages(answers) ui rendered with markdown
-- [ ] feat: preset chat messages
 - [ ] console.error should be replaced by notice component
