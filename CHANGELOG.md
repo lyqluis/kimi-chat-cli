@@ -1,5 +1,12 @@
 # @lyqluis/kimi-chat-cli
 
+## 0.1.4
+
+### Patch Changes
+
+- ab6c979: update README.md, test ci workflow
+- 1f5540d: feat: add `/prompt` cmd and prompt selector
+
 ## 0.1.3
 
 ### Patch Changes
